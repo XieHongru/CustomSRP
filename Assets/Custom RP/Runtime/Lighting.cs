@@ -28,12 +28,20 @@ public class Lighting
 
     CullingResults cullingResults;
 
-    public void Setup(ScriptableRenderContext context, CullingResults cullingResults)
+    Shadows shadows = new Shadows();
+
+    public void Cleanup()
+    {
+        shadows.Cleanup();
+    }
+
+    public void Setup(ScriptableRenderContext context, CullingResults cullingResults, ShadowSettings shadowSettings)
     {
         this.cullingResults = cullingResults;
         buffer.BeginSample(bufferName);
-        //SetupDirectionalLight();
+        shadows.Setup(context, cullingResults, shadowSettings);
         SetupLights();
+        shadows.Render();
         buffer.EndSample(bufferName);
         context.ExecuteCommandBuffer(buffer);
         buffer.Clear();
@@ -43,7 +51,7 @@ public class Lighting
     {
         dirLightColors[index] = visibleLight.finalColor;
         dirLightDirections[index] = -visibleLight.localToWorldMatrix.GetColumn(2);
-
+        shadows.ReserveDirectionalShadows(visibleLight.light, index);
     }
 
     void SetupLights()
